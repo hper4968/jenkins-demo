@@ -47,17 +47,21 @@ pipeline {
             }
         }
 
-    stage('Deploy') {
-        steps {
-            echo "Deploying to remote Apache server..."
-            sshagent(credentials: ['my-ssh-key-id']) {
-                sh """
-                    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null index.html ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}
-                    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_USER}@${REMOTE_HOST} 'sudo systemctl restart apache2 || sudo systemctl restart httpd'
-                """
-            }
+   stage('Deploy') {
+    steps {
+        echo "Deploying to remote Apache server..."
+        sshagent(credentials: ['my-ssh-key-id']) {
+            sh """
+                # Upload to a temporary path where 'ubuntu' has write access
+                scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null index.html ${REMOTE_USER}@${REMOTE_HOST}:/tmp/index.html
+
+                # Move it to the final destination using sudo
+                ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_USER}@${REMOTE_HOST} 'sudo mv /tmp/index.html /var/www/html/index.html && sudo systemctl restart apache2 || sudo systemctl restart httpd'
+            """
         }
     }
+}
+
 
 
         stage('Verify Deployment') {
