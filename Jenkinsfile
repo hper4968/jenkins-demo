@@ -28,11 +28,13 @@ pipeline {
             }
             steps {
                 withSonarQubeEnv('sonarserver') { // Make sure this matches the SonarQube installation name under Manage Jenkins > Configure System
-                    sh '''${scannerHome}/bin/sonar-scanner \
+                   sh '''${scannerHome}/bin/sonar-scanner \
                         -Dsonar.projectKey=sonar-demo \
                         -Dsonar.projectName=sonar-demo \
                         -Dsonar.sources=. \
-                        -Dsonar.inclusions=index.html'''
+                        -Dsonar.inclusions=index.html \
+                        -Dsonar.language=web'''
+
                 }
             }
         }
