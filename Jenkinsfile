@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         S3_BUCKET = 'demo-hemal12'
-        S3_PATH = 'demo-hemal12/'
         REMOTE_USER = 'ubuntu'
         REMOTE_HOST = '3.134.78.129'
         REMOTE_PATH = '/var/www/html/index.html'
