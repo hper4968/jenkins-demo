@@ -22,30 +22,24 @@ pipeline {
             }
         }
 
-   stage('Sonar CodeAnalysis') {
+        stage('Sonar Code Analysis') {
             environment {
-                scannerHome = tool 'sonar6.2' //- This gives us CLI,below code will run there,
-                // tool name  (Manage Jenkins > Tools > Sonar))
+                scannerHome = tool 'sonar6.2'  // Make sure this name matches what's in Jenkins (Manage Jenkins > Tools > SonarQube Scanner)
             }
             steps {
-               withSonarQubeEnv('sonarserver') { // server name in Jenkins Manage > system > sonarQube installation
-                   sh '''${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=sonar-demo \
-                   -Dsonar.projectName=sonar-demo \
-                   -Dsonar.projectVersion=1.0 \
-                   -Dsonar.sources=src/ \
-                   -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/ \
-                   -Dsonar.junit.reportsPath=target/surefire-reports/ \
-                   -Dsonar.jacoco.reportsPath=target/jacoco.exec \
-                   -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml'''
-              }
+                withSonarQubeEnv('sonarserver') { // Make sure this matches the SonarQube installation name under Manage Jenkins > Configure System
+                    sh '''${scannerHome}/bin/sonar-scanner \
+                        -Dsonar.projectKey=sonar-demo \
+                        -Dsonar.projectName=sonar-demo \
+                        -Dsonar.sources=. \
+                        -Dsonar.inclusions=index.html'''
+                }
             }
         }
 
-       stage("Quality Gate") {
+        stage('Quality Gate') {
             steps {
-                timeout(time: 1, unit: 'HOURS') {
-                    // Parameter indicates whether to set pipeline to UNSTABLE if Quality Gate fails
-                    // true = set pipeline to UNSTABLE, false = don't
+                timeout(time: 2, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
             }
@@ -54,11 +48,10 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo "Deploying to remote Apache server..."
-                // Copy file to server using SSH credentials configured in Jenkins
                 sshagent(credentials: ['my-ssh-key-id']) {
                     sh """
                         scp index.html ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}
-                        ssh ${REMOTE_USER}@${REMOTE_HOST} 'sudo systemctl restart httpd'
+                        ssh ${REMOTE_USER}@${REMOTE_HOST} 'sudo systemctl restart apache2 || sudo systemctl restart httpd'
                     """
                 }
             }
