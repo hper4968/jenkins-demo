@@ -18,7 +18,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo "Uploading index.html to S3..."
-                sh "aws s3 cp index.html s3://${S3_BUCKET}/${S3_PATH}"
+                sh "aws s3 cp index.html s3://${S3_BUCKET}/"
             }
         }
 
