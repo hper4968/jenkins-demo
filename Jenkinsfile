@@ -41,20 +41,36 @@ pipeline {
             }
         }
 
-   stage('Deploy') {
-    steps {
-        echo "Deploying to remote Apache server..."
-        sshagent(credentials: ['my-ssh-key-id']) {
-            sh """
-                # Upload to a temporary path where 'ubuntu' has write access
-                scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null index.html ${REMOTE_USER}@${REMOTE_HOST}:/tmp/index.html
+//    stage('Deploy') {
+//     steps {
+//         echo "Deploying to remote Apache server..."
+//         sshagent(credentials: ['my-ssh-key-id']) {
+//             sh """
+//                 # Upload to a temporary path where 'ubuntu' has write access
+//                 scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null index.html ${REMOTE_USER}@${REMOTE_HOST}:/tmp/index.html
 
-                # Move it to the final destination using sudo
-                ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_USER}@${REMOTE_HOST} 'sudo mv /tmp/index.html /var/www/html/index.html && sudo systemctl restart apache2 || sudo systemctl restart httpd'
-            """
+//                 # Move it to the final destination using sudo
+//                 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_USER}@${REMOTE_HOST} 'sudo mv /tmp/index.html /var/www/html/index.html && sudo systemctl restart apache2 || sudo systemctl restart httpd'
+//             """
+//         }
+//     }
+// }
+
+    stage('Deploy') {
+        steps {
+            echo "Deploying index.html from S3 to Apache server..."
+            sshagent(credentials: ['my-ssh-key-id']) {
+                sh """
+                    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_USER}@${REMOTE_HOST} '
+                        aws s3 cp s3://${S3_BUCKET}/index.html /tmp/index.html &&
+                        sudo mv /tmp/index.html /var/www/html/index.html &&
+                        sudo systemctl restart apache2 || sudo systemctl restart httpd
+                    '
+                """
+            }
         }
     }
-}
+
 
 
 
