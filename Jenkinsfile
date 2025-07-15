@@ -4,7 +4,7 @@ pipeline {
     environment {
         S3_BUCKET = 'demo-hemal12'
         REMOTE_USER = 'ubuntu'
-        REMOTE_HOST = '3.134.78.129'
+        REMOTE_HOST = '3.18.104.241'
         REMOTE_PATH = '/var/www/html/index.html'
     }
 
@@ -28,13 +28,7 @@ pipeline {
             }
             steps {
                 withSonarQubeEnv('sonarserver') { // Make sure this matches the SonarQube installation name under Manage Jenkins > Configure System
-                   sh '''${scannerHome}/bin/sonar-scanner \
-                        -Dsonar.projectKey=sonar-demo \
-                        -Dsonar.projectName=sonar-demo \
-                        -Dsonar.sources=. \
-                        -Dsonar.inclusions=index.html \
-                        -Dsonar.language=web'''
-
+                   sh "${scannerHome}/bin/sonar-scanner"
                 }
             }
         }
